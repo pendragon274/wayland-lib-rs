@@ -12,7 +12,7 @@ impl Display for WaylandSockMsg{
         match String::from_utf8(self.msg.clone()){
             Ok(s) => {
                 write!(f, "ObjID: {}, Len: {}, Opcode: {}, Message: {}", self.objID, self.msgLen, self.opcode, s);
-            }, Err(e) => {
+            }, Err(_) => {
                 let mut str = String::from("");
                 for u in &self.msg{
                     str.push(*u as char);

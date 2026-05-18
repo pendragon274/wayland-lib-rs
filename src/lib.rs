@@ -3,6 +3,7 @@ mod wayland_sock;
 mod wayland_sock_msg;
 mod wayland_display;
 mod wayland_registry;
+mod wayland_object;
 
 pub mod prelude{
     pub use crate::wayland::Wayland;

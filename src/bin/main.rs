@@ -29,11 +29,12 @@ fn main() {
     drop(wl);
     println!("Closed.");*/
 
-    let mut wayland: Wayland = Wayland::new();
+    /*let mut wayland: Wayland = Wayland::new();
     let mut display = wayland.get_display();
     let mut new_id = wayland.use_new_id();
     let registry = display.get_registry(wayland.get_sock(), new_id);
     new_id = wayland.use_new_id();
-    display.sync(wayland.get_sock(), callback, new_id);
-
+    display.sync(wayland.get_sock(), callback, new_id);*/
+    let mut wayland: Wayland = Wayland::new();
+    println!("Wayland initialized!");
 }

@@ -71,7 +71,7 @@ impl WaylandSock{
                 }
 
                 let mut vec: Vec<u8> = Vec::with_capacity((len as usize) - 8);
-                for i in 0..(len - 8){
+                for _ in 0..(len - 8){
                     vec.push(0);
                 }
                 match my_stream.read_exact(&mut vec){
