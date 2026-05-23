@@ -1,23 +1,23 @@
 use std::fmt::Display;
 
 pub struct WaylandSockMsg{
-    objID: u32,
+    obj_id: u32,
     opcode: u16,
-    msgLen: u16,
+    msg_len: u16,
     msg: Vec<u8>
 }
 
 impl Display for WaylandSockMsg{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error>{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error>{
         match String::from_utf8(self.msg.clone()){
             Ok(s) => {
-                write!(f, "ObjID: {}, Len: {}, Opcode: {}, Message: {}", self.objID, self.msgLen, self.opcode, s);
+                let _ = write!(f, "ObjID: {}, Len: {}, Opcode: {}, Message: {}", self.obj_id, self.msg_len, self.opcode, s);
             }, Err(_) => {
                 let mut str = String::from("");
                 for u in &self.msg{
                     str.push(*u as char);
                 }
-                write!(f, "ObjID: {}, Len: {}, Opcode: {}, Message: {}", self.objID, self.msgLen, self.opcode, str);
+                let _ = write!(f, "ObjID: {}, Len: {}, Opcode: {}, Message: {}", self.obj_id, self.msg_len, self.opcode, str);
             }
         }
 
@@ -25,50 +25,61 @@ impl Display for WaylandSockMsg{
     }
 }
 
-impl WaylandSockMsg{
-    pub fn new(objID: u32, opcode: u16, msg: Vec<u8>) -> WaylandSockMsg{
+impl Clone for WaylandSockMsg{
+    fn clone(&self) -> Self {
         WaylandSockMsg{
-            objID: objID,
+            obj_id: self.obj_id,
+            opcode: self.opcode,
+            msg_len: self.msg_len,
+            msg: self.msg.clone()
+        }
+    }
+}
+
+impl WaylandSockMsg{
+    pub fn new(new_obj_id: u32, opcode: u16, msg: Vec<u8>) -> WaylandSockMsg{
+        WaylandSockMsg{
+            obj_id: new_obj_id,
             opcode: opcode,
-            msgLen: (8 + msg.len()) as u16,
+            msg_len: (8 + msg.len()) as u16,
             msg: msg
         }
     }
 
-    pub fn from(rawMsg: Vec<u8>) -> WaylandSockMsg{
-        if rawMsg.len() < 8{
+    pub fn from(raw_msg: Vec<u8>) -> WaylandSockMsg{
+        if raw_msg.len() < 8{
             return WaylandSockMsg{
-                objID: 0,
+                obj_id: 0,
                 opcode: 0,
-                msgLen: 8,
+                msg_len: 8,
                 msg: Vec::new()
             };
         }
 
-        let len = u16::from_ne_bytes(rawMsg[6..8].try_into().unwrap());
+        let len = u16::from_ne_bytes(raw_msg[6..8].try_into().unwrap());
         if len > 8 {
             WaylandSockMsg {
-                objID: u32::from_ne_bytes(rawMsg[0..4].try_into().unwrap()),
-                opcode: u16::from_ne_bytes(rawMsg[4..6].try_into().unwrap()),
-                msgLen: len,
-                msg: rawMsg[8..(len as usize)].to_vec()
+                obj_id: u32::from_ne_bytes(raw_msg[0..4].try_into().unwrap()),
+                opcode: u16::from_ne_bytes(raw_msg[4..6].try_into().unwrap()),
+                msg_len: len,
+                msg: raw_msg[8..(len as usize)].to_vec()
             }
         }else{
             WaylandSockMsg{
-                objID: u32::from_ne_bytes(rawMsg[0..4].try_into().unwrap()),
-                opcode: u16::from_ne_bytes(rawMsg[4..6].try_into().unwrap()),
-                msgLen: len,
+                obj_id: u32::from_ne_bytes(raw_msg[0..4].try_into().unwrap()),
+                opcode: u16::from_ne_bytes(raw_msg[4..6].try_into().unwrap()),
+                msg_len: len,
                 msg: Vec::new()
             }
         }
     }
 
     pub fn to_raw_vec(&self) -> Vec<u8>{
-        let mut raw: Vec<u8> = Vec::with_capacity(self.msgLen as usize);
+        let mut raw: Vec<u8> = Vec::with_capacity(self.msg_len as usize);
 
-        let ne_objID = self.objID.to_ne_bytes();
+        let ne_obj_id = self.obj_id.to_ne_bytes();
         for i in 0..4{
-            raw.push(ne_objID[i]);
+            raw.push(ne_obj_id[i]);
         }
 
         let ne_opcode = self.opcode.to_ne_bytes();
@@ -76,13 +87,13 @@ impl WaylandSockMsg{
             raw.push(ne_opcode[i]);
         }
 
-        let ne_msgLen = self.msgLen.to_ne_bytes();
+        let ne_msg_len = self.msg_len.to_ne_bytes();
         for i in 0..2{
-            raw.push(ne_msgLen[i]);
+            raw.push(ne_msg_len[i]);
         }
 
-        if self.msgLen > 8 {
-            for i in 0..(self.msgLen - 8) as usize {
+        if self.msg_len > 8 {
+            for i in 0..(self.msg_len - 8) as usize {
                 raw.push(self.msg[i]);
             }
         }
@@ -110,6 +121,10 @@ impl WaylandSockMsg{
     }
 
     pub fn message_len(&self) -> u16{
-        self.msgLen
+        self.msg_len
+    }
+
+    pub fn message_id(&self) -> u32{
+        self.obj_id
     }
 }

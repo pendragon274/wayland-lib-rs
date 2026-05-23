@@ -1,79 +1,77 @@
-use std::cell::{RefCell, RefMut};
 use crate::prelude::WaylandSockMsg;
+use crate::wayland_display::WaylandDisplay;
+use crate::wayland_registry::WaylandRegistry;
+use crate::wayland_callback::WaylandCallback;
 
-pub struct WaylandObject<T: WaylandObjectImpl + ?Sized>{
-    obj: Box<RefCell<T>>
+pub enum WaylandObject{
+    WaylandDisplay(WaylandDisplay),
+    WaylandRegistry(WaylandRegistry),
+    WaylandCallback(WaylandCallback)
 }
 
-pub struct WaylandObjectRef<'a, T: WaylandObjectImpl + ?Sized>{
-    obj_ref: RefMut<'a, T>
-}
-
+#[allow(dead_code)]
 pub trait WaylandObjectImpl{
     fn get_id(&self) -> u32;
-    fn get_type(&self) -> String;
-    fn borrow_mut(&mut self) -> WaylandObjectRef<dyn WaylandObjectImpl>;
-    fn borrow_children(&mut self) -> Vec<WaylandObjectRef<dyn WaylandObjectImpl>>;
-    fn msg_downstream(&self, msg: WaylandSockMsg);
-    fn msg_upstream(&mut self, msg: WaylandSockMsg);
+    fn is_upstream_flagged(&self) -> bool;
+    fn get_children(&mut self) -> Vec<&mut WaylandObject>;
+    fn msg_downstream(&mut self, msg: WaylandSockMsg);
+    fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg>;
 }
 
-impl<T: WaylandObjectImpl> WaylandObject<T> {
-    pub fn from<A: WaylandObjectImpl>(obj: A) -> WaylandObject<A>{
-        WaylandObject{
-            obj: Box::new(RefCell::new(obj))
+impl WaylandObjectImpl for WaylandObject{
+    fn get_id(&self) -> u32 {
+        match self {
+            WaylandObject::WaylandDisplay(disp) =>{
+                disp.get_id()
+            }, WaylandObject::WaylandRegistry(reg) =>{
+                reg.get_id()
+            }, WaylandObject::WaylandCallback(call) =>{
+                call.get_id()
+            }
         }
     }
-}
 
-impl<T: WaylandObjectImpl + ?Sized> WaylandObjectImpl for WaylandObject<T> {
-    fn get_id(&self) -> u32 {
-        self.obj.borrow().get_id()
+    fn is_upstream_flagged(&self) -> bool {
+        match self{
+            WaylandObject::WaylandDisplay(disp) => disp.is_upstream_flagged(),
+            WaylandObject::WaylandRegistry(reg) => reg.is_upstream_flagged(),
+            WaylandObject::WaylandCallback(call) => call.is_upstream_flagged()
+        }
     }
 
-    fn get_type(&self) -> String {
-        self.obj.borrow().get_type()
+    fn get_children(&mut self) -> Vec<&mut WaylandObject> {
+        match self{
+            WaylandObject::WaylandDisplay(disp)=>{
+                disp.get_children()
+            }, WaylandObject::WaylandRegistry(reg)=>{
+                reg.get_children()
+            }, WaylandObject::WaylandCallback(call)=>{
+               call.get_children()
+            }
+        }
     }
 
-    fn borrow_mut(&mut self) -> WaylandObjectRef<dyn WaylandObjectImpl> {
-        self.obj.get_mut().borrow_mut()
+    fn msg_downstream(&mut self, msg: WaylandSockMsg) {
+        match self{
+            WaylandObject::WaylandDisplay(disp)=>{
+                disp.msg_downstream(msg)
+            }, WaylandObject::WaylandRegistry(reg)=>{
+                reg.msg_downstream(msg)
+            }, WaylandObject::WaylandCallback(call)=>{
+                call.msg_downstream(msg)
+            }
+        }
     }
 
-    fn borrow_children(&mut self) -> Vec<WaylandObjectRef<dyn WaylandObjectImpl>> {
-        self.obj.get_mut().borrow_children()
-    }
-
-    fn msg_downstream(&self, msg: WaylandSockMsg){
-        self.obj.borrow_mut().msg_downstream(msg);
-    }
-
-    fn msg_upstream(&mut self, msg: WaylandSockMsg){
-        self.obj.borrow_mut().msg_upstream(msg);
-    }
-}
-
-impl WaylandObjectImpl for WaylandObjectRef<'_, dyn WaylandObjectImpl> {
-    fn get_id(&self) -> u32 {
-        todo!()
-    }
-
-    fn get_type(&self) -> String {
-        todo!()
-    }
-
-    fn borrow_mut<'a>(&mut self) -> WaylandObjectRef<dyn WaylandObjectImpl> {
-        todo!()
-    }
-
-    fn borrow_children(&mut self) -> Vec<WaylandObjectRef<dyn WaylandObjectImpl>> {
-        todo!()
-    }
-
-    fn msg_downstream(&self, _msg: WaylandSockMsg) {
-        todo!()
-    }
-
-    fn msg_upstream(&mut self, _msg: WaylandSockMsg) {
-        todo!()
+    fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg> {
+        match self{
+            WaylandObject::WaylandDisplay(disp)=>{
+                disp.rcv_upstream_msg()
+            }, WaylandObject::WaylandRegistry(reg)=>{
+                reg.rcv_upstream_msg()
+            }, WaylandObject::WaylandCallback(call)=>{
+                call.rcv_upstream_msg()
+            }
+        }
     }
 }
