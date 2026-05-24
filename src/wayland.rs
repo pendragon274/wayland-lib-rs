@@ -1,12 +1,13 @@
 use crate::prelude::WaylandSockMsg;
 use crate::wayland_sock::WaylandSock;
 use crate::wayland_display::WaylandDisplay;
+use crate::wayland_id_counter::WaylandIDCounter;
 use crate::wayland_object::{WaylandObject, WaylandObjectImpl};
 
-pub struct Wayland {
+pub struct Wayland{
     wl_socket: WaylandSock,
     children: Vec<WaylandObject>,
-    current_open_id: u32
+    id_counter: WaylandIDCounter
 }
 
 impl Wayland{
@@ -58,13 +59,10 @@ impl Wayland{
     }
 
     pub fn get_new_id(&mut self) -> u32{
-        let ret = self.current_open_id;
-        self.current_open_id = self.current_open_id + 1;
-        ret
+        self.id_counter.get_new_id()
     }
 
     // ***** Private Functions *****
-
     fn has_display(&self) -> Option<usize>{
         for index in 0..self.children.len(){
             if matches!(self.children[index], WaylandObject::WaylandDisplay(_)){
@@ -75,13 +73,13 @@ impl Wayland{
     }
 
     // ***** Struct Init *****
-    pub fn new() -> Wayland {
+    pub fn new() -> Wayland{
         println!("Creating Wayland object.");
 
-        Wayland {
+        Wayland{
             wl_socket: WaylandSock::new(),
             children: Vec::new(),
-            current_open_id: 1
+            id_counter: WaylandIDCounter::new()
         }
     }
 }

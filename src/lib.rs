@@ -5,12 +5,18 @@ mod wayland_display;
 mod wayland_registry;
 mod wayland_object;
 mod wayland_callback;
+mod wayland_id_counter;
+mod wayland_registry_object;
+mod wayland_event_buf;
 
 pub mod prelude{
     pub use crate::wayland_object::WaylandObject;
     pub use crate::wayland::Wayland;
     pub use crate::wayland_display::WaylandDisplay;
     pub use crate::wayland_registry::WaylandRegistry;
+    pub use crate::wayland_registry::RegistryCallbackHandle;
+    pub use crate::wayland_registry_object::WaylandRegistryObject;
+    pub use crate::wayland_event_buf::WaylandEventBuffer;
     pub use crate::wayland_sock::WaylandSock;
     pub use crate::wayland_sock_msg::WaylandSockMsg;
     pub use crate::wayland_callback::WaylandCallback;

@@ -127,4 +127,12 @@ impl WaylandSockMsg{
     pub fn message_id(&self) -> u32{
         self.obj_id
     }
+    
+    pub fn opcode(&self) -> u16{
+        self.opcode
+    }
+    
+    pub fn message(&self) -> Vec<u8>{
+        self.msg.clone()
+    }
 }

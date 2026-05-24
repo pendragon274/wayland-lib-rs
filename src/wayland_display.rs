@@ -9,7 +9,7 @@ pub struct WaylandDisplay{
     upstream_msgs: Vec<WaylandSockMsg>
 }
 
-impl WaylandDisplay {
+impl WaylandDisplay{
     // ***** Public Functions *****
     pub fn get_registry(&mut self, new_id: u32) -> &mut WaylandRegistry{
         match self.has_registry(){
@@ -58,7 +58,7 @@ impl WaylandDisplay {
     }
 
     // ***** Struct Init *****
-    pub fn new(new_id: u32) -> WaylandDisplay {
+    pub fn new(new_id: u32) -> WaylandDisplay{
         println!("Creating WaylandDisplay object with id: {}", new_id);
 
         WaylandDisplay{
@@ -70,7 +70,7 @@ impl WaylandDisplay {
     }
 }
 
-impl WaylandObjectImpl for WaylandDisplay {
+impl WaylandObjectImpl for WaylandDisplay{
     fn get_id(&self) -> u32 {
         self.id
     }
