@@ -19,11 +19,11 @@ impl RegistryCallbackHandle for Client {
                 let id = self.wayland.get_new_id();
                 self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
             }, "wl_compositor" =>{
-                //let id = self.wayland.get_new_id();
-                //self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
+                let id = self.wayland.get_new_id();
+                self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
             }, "xdg_wm_base" =>{
-                //let id = self.wayland.get_new_id();
-                //self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
+                let id = self.wayland.get_new_id();
+                self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
             }, _ =>{}
         }
     }

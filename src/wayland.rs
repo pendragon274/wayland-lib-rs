@@ -76,8 +76,6 @@ impl Wayland{
 
     // ***** Struct Init *****
     pub fn new() -> Wayland{
-        println!("Creating Wayland object.");
-
         Wayland{
             wl_socket: WaylandSock::new(),
             children: Vec::new(),

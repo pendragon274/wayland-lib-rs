@@ -9,8 +9,8 @@ pub struct WaylandSHM{
 impl WaylandSHM{
     // ***** Public Functions *****
     // ***** Private Functions *****
-    fn respond_to_msg(&mut self, msg: WaylandSockMsg){
-        println!("SHM got a message: {}", msg);
+    fn respond_to_msg(&mut self, _msg: WaylandSockMsg){
+        //println!("SHM got a message: {:?}", msg.message());
     }
 
     // ***** Init Struct *****

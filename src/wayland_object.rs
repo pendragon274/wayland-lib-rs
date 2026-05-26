@@ -22,7 +22,6 @@ pub enum WaylandObject{
     WaylandXDGWMBase(WaylandXDGWMBase)
 }
 
-#[allow(dead_code)]
 pub trait WaylandObjectImpl{
     fn get_id(&self) -> u32;
     fn is_upstream_flagged(&self) -> bool;

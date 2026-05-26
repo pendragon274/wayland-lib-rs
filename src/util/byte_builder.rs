@@ -11,7 +11,7 @@ impl ByteBuilder{
     }
     
     pub fn align(self, alignment: usize) -> ByteBuilder{
-        let offset = alignment - (self.vec.len() % alignment);
+        let offset = (alignment - (self.vec.len() % alignment)) % alignment;
         let mut aligner: Vec<u8> = Vec::new();
         
         for _ in 0..offset{

@@ -9,7 +9,7 @@ pub struct WaylandRegistryEvent{
 
 impl Display for WaylandRegistryEvent{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Global Registry Object Name: {}, Interface: {}, Version: {}", self.name, self.interface_str, self.version)
+        write!(f, "Registry Event Name: {}, Interface: {}, Version: {}", self.name, self.interface_str, self.version)
     }
 }
 

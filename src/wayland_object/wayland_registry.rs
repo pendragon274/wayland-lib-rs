@@ -44,7 +44,7 @@ impl WaylandRegistry{
                 let child = WaylandObject::WaylandXDGWMBase(WaylandXDGWMBase::new(new_id));
                 self.children.push(child);
             }, _=>{
-                todo!("unimplemented and unknown WaylandRegistry::bind!")
+                todo!("Unimplemented and unknown interface for WaylandRegistry::bind!")
             }
         }
 
@@ -67,15 +67,16 @@ impl WaylandRegistry{
         }
     }
 
-    fn make_bind_request_msg(&self, new_id: u32, wl_registry_object: WaylandRegistryEvent) -> WaylandSockMsg{
-        let msg = ByteBuilder::from(wl_registry_object.name())
-            .with((wl_registry_object.interface_str().len() + 1) as u32)
-            .with(wl_registry_object.interface_str())
+    fn make_bind_request_msg(&self, new_id: u32, wl_registry_event: WaylandRegistryEvent) -> WaylandSockMsg{
+        let msg = ByteBuilder::from(wl_registry_event.name())
+            .with((wl_registry_event.interface_str().len() + 1) as u32)
+            .with(wl_registry_event.interface_str())
             .with("\0")
             .align(4)
-            .with(wl_registry_object.version())
+            .with(wl_registry_event.version())
             .with(new_id)
             .to_bytes();
+
         WaylandSockMsg::new(self.id, 0, msg)
     }
 
