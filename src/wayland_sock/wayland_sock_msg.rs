@@ -37,12 +37,12 @@ impl Clone for WaylandSockMsg{
 }
 
 impl WaylandSockMsg{
-    pub fn new(new_obj_id: u32, opcode: u16, msg: Vec<u8>) -> WaylandSockMsg{
+    pub fn new(msg_obj_id: u32, msg_opcode: u16, msg_contents: Vec<u8>) -> WaylandSockMsg{
         WaylandSockMsg{
-            obj_id: new_obj_id,
-            opcode: opcode,
-            msg_len: (8 + msg.len()) as u16,
-            msg: msg
+            obj_id: msg_obj_id,
+            opcode: msg_opcode,
+            msg_len: (8 + msg_contents.len()) as u16,
+            msg: msg_contents
         }
     }
 

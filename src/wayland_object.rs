@@ -1,12 +1,25 @@
-use crate::prelude::WaylandSockMsg;
-use crate::wayland_display::WaylandDisplay;
-use crate::wayland_registry::WaylandRegistry;
-use crate::wayland_callback::WaylandCallback;
+use wayland_display::WaylandDisplay;
+use wayland_registry::WaylandRegistry;
+use wayland_callback::WaylandCallback;
+use wayland_shm::WaylandSHM;
+use crate::wayland_object::wayland_compositor::WaylandCompositor;
+use crate::wayland_object::wayland_xdg_wm_base::WaylandXDGWMBase;
+use crate::wayland_sock::WaylandSockMsg;
+
+pub mod wayland_display;
+pub mod wayland_registry;
+pub mod wayland_callback;
+pub mod wayland_shm;
+pub mod wayland_compositor;
+pub mod wayland_xdg_wm_base;
 
 pub enum WaylandObject{
     WaylandDisplay(WaylandDisplay),
     WaylandRegistry(WaylandRegistry),
-    WaylandCallback(WaylandCallback)
+    WaylandCallback(WaylandCallback),
+    WaylandSHM(WaylandSHM),
+    WaylandCompositor(WaylandCompositor),
+    WaylandXDGWMBase(WaylandXDGWMBase)
 }
 
 #[allow(dead_code)]
@@ -27,6 +40,12 @@ impl WaylandObjectImpl for WaylandObject{
                 reg.get_id()
             }, WaylandObject::WaylandCallback(call) =>{
                 call.get_id()
+            }, WaylandObject::WaylandSHM(shm) =>{
+                shm.get_id()
+            }, WaylandObject::WaylandCompositor(compositor) =>{
+                compositor.get_id()
+            }, WaylandObject::WaylandXDGWMBase(xdg) =>{
+                xdg.get_id()
             }
         }
     }
@@ -35,7 +54,10 @@ impl WaylandObjectImpl for WaylandObject{
         match self{
             WaylandObject::WaylandDisplay(disp) => disp.is_upstream_flagged(),
             WaylandObject::WaylandRegistry(reg) => reg.is_upstream_flagged(),
-            WaylandObject::WaylandCallback(call) => call.is_upstream_flagged()
+            WaylandObject::WaylandCallback(call) => call.is_upstream_flagged(),
+            WaylandObject::WaylandSHM(shm) => shm.is_upstream_flagged(),
+            WaylandObject::WaylandCompositor(compositor) => compositor.is_upstream_flagged(),
+            WaylandObject::WaylandXDGWMBase(xdg) => xdg.is_upstream_flagged()
         }
     }
 
@@ -47,6 +69,12 @@ impl WaylandObjectImpl for WaylandObject{
                 reg.get_children()
             }, WaylandObject::WaylandCallback(call)=>{
                call.get_children()
+            }, WaylandObject::WaylandSHM(shm)=>{
+                shm.get_children()
+            }, WaylandObject::WaylandCompositor(compositor)=>{
+                compositor.get_children()
+            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+                xdg.get_children()
             }
         }
     }
@@ -59,6 +87,12 @@ impl WaylandObjectImpl for WaylandObject{
                 reg.msg_downstream(msg)
             }, WaylandObject::WaylandCallback(call)=>{
                 call.msg_downstream(msg)
+            }, WaylandObject::WaylandSHM(shm)=>{
+                shm.msg_downstream(msg)
+            }, WaylandObject::WaylandCompositor(compositor)=>{
+                compositor.msg_downstream(msg)
+            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+                xdg.msg_downstream(msg)
             }
         }
     }
@@ -71,6 +105,12 @@ impl WaylandObjectImpl for WaylandObject{
                 reg.rcv_upstream_msg()
             }, WaylandObject::WaylandCallback(call)=>{
                 call.rcv_upstream_msg()
+            }, WaylandObject::WaylandSHM(shm)=>{
+                shm.rcv_upstream_msg()
+            }, WaylandObject::WaylandCompositor(compositor)=>{
+                compositor.rcv_upstream_msg()
+            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+                xdg.rcv_upstream_msg()
             }
         }
     }

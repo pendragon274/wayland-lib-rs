@@ -1,12 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::prelude::WaylandRegistryObject;
-use crate::wayland_callback::WaylandCallbackHandle;
-use crate::wayland_registry::RegistryCallbackHandle;
-
-/*static global_add_buf: LazyLock<Arc<RwLock<Vec<WaylandRegistryObject>>>> = LazyLock::new(|| Arc::new(RwLock::new(Vec::new())));
-static global_remove_buf: LazyLock<Arc<RwLock<Vec<WaylandRegistryObject>>>> = LazyLock::new(|| Arc::new(RwLock::new(Vec::new())));
-static signal_buf: LazyLock<Arc<RwLock<Vec<u32>>>> = LazyLock::new(|| Arc::new(RwLock::new(Vec::new())));*/
+use crate::wayland_object::wayland_callback::WaylandCallbackHandle;
+use crate::wayland_object::wayland_display::{DisplayCallbackHandle, WaylandDisplayEvent};
+use crate::wayland_object::wayland_registry::RegistryCallbackHandle;
+use crate::wayland_object::wayland_registry::WaylandRegistryEvent;
 
 pub struct WaylandEventBuffer{
     internal_buffer: Rc<RefCell<WaylandEventBufferInternal>>
@@ -33,9 +30,11 @@ impl WaylandEventBuffer{
 }
 
 pub struct WaylandEventBufferInternal{
-    global_add_buf: Vec<WaylandRegistryObject>,
-    global_remove_buf: Vec<WaylandRegistryObject>,
-    signal_buf: Vec<u32>
+    global_add_buf: Vec<WaylandRegistryEvent>,
+    global_remove_buf: Vec<WaylandRegistryEvent>,
+    signal_buf: Vec<u32>,
+    error_buf: Vec<WaylandDisplayEvent>,
+    delete_id_buf: Vec<WaylandDisplayEvent>
 }
 
 impl WaylandEventBufferInternal {
@@ -56,35 +55,53 @@ impl WaylandEventBufferInternal {
         }
     }
 
+    pub fn dispatch_display_callback<T: DisplayCallbackHandle>(&mut self, target: &mut T){
+        for event in self.error_buf.drain(0..){
+            target.error(event);
+        }
+
+        for event in self.delete_id_buf.drain(0..){
+            target.delete_id(event);
+        }
+    }
+
     // ***** Private Functions *****
 
-    // ***** Static Functions *****
-    /*fn borrow_add_buf<'a>() -> &'a mut Vec<WaylandRegistryObject> {
-        global_add_buf.write().unwrap().as_mut::<'a>()
-    }*/
 
     // ***** Init Struct *****
     pub fn new() -> WaylandEventBufferInternal {
         WaylandEventBufferInternal {
             global_add_buf: Vec::new(),
             global_remove_buf: Vec::new(),
-            signal_buf: Vec::new()
+            signal_buf: Vec::new(),
+            error_buf: Vec::new(),
+            delete_id_buf: Vec::new()
         }
     }
 }
 
 impl RegistryCallbackHandle for WaylandEventBufferInternal {
-    fn global_add(&mut self, wl_registry_object: WaylandRegistryObject) {
-        self.global_add_buf.push(wl_registry_object);
+    fn global_add(&mut self, wl_registry_event: WaylandRegistryEvent) {
+        self.global_add_buf.push(wl_registry_event);
     }
 
-    fn global_remove(&mut self, wl_registry_object: WaylandRegistryObject) {
-        self.global_remove_buf.push(wl_registry_object);
+    fn global_remove(&mut self, wl_registry_event: WaylandRegistryEvent) {
+        self.global_remove_buf.push(wl_registry_event);
     }
 }
 
 impl WaylandCallbackHandle for WaylandEventBufferInternal {
     fn signal(&mut self, id: u32) {
         self.signal_buf.push(id);
+    }
+}
+
+impl DisplayCallbackHandle for WaylandEventBufferInternal {
+    fn error(&mut self, event: WaylandDisplayEvent) {
+        self.error_buf.push(event);
+    }
+
+    fn delete_id(&mut self, event: WaylandDisplayEvent) {
+        self.delete_id_buf.push(event);
     }
 }

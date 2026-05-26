@@ -1,8 +1,6 @@
-use crate::prelude::WaylandSockMsg;
-use crate::wayland_sock::WaylandSock;
-use crate::wayland_display::WaylandDisplay;
+use crate::wayland_sock::{WaylandSock, WaylandSockMsg};
 use crate::wayland_id_counter::WaylandIDCounter;
-use crate::wayland_object::{WaylandObject, WaylandObjectImpl};
+use crate::wayland_object::{WaylandObject, WaylandObjectImpl, wayland_display::WaylandDisplay};
 
 pub struct Wayland{
     wl_socket: WaylandSock,
@@ -39,6 +37,10 @@ impl Wayland{
                 msgs.append(&mut child.rcv_upstream_msg());
             }
         }
+
+        /*for msg in &msgs{
+            println!("Writing message: {}", msg);
+        }*/
 
         self.wl_socket.write_all_msgs(msgs);
     }

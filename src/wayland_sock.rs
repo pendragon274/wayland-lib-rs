@@ -1,8 +1,10 @@
+pub mod wayland_sock_msg;
+
 use std::os::unix::net::UnixStream;
 use std::env::var;
 use std::net::Shutdown;
 use std::io::{Error, ErrorKind, Read, Result, Write};
-use crate::wayland_sock_msg::WaylandSockMsg;
+pub(crate) use wayland_sock_msg::WaylandSockMsg;
 
 pub struct WaylandSock{
     stream: Option<UnixStream>

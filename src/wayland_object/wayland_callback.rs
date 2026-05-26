@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::prelude::{WaylandObject, WaylandSockMsg};
-use crate::wayland_object::WaylandObjectImpl;
+use crate::wayland_object::{WaylandObject, WaylandObjectImpl};
+use crate::wayland_sock::WaylandSockMsg;
 
 pub trait WaylandCallbackHandle{
     fn signal(&mut self, id: u32);
