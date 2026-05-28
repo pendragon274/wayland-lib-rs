@@ -29,7 +29,7 @@ impl Wayland{
                     _ => panic!("Wayland::get_display unwrapped an index of its child expecting a WaylandDisplay but found something else.")
                 }
             }, None => {
-                let child = WaylandObject::WaylandDisplay(WaylandDisplay::new(self.get_new_id()));
+                let child = WaylandObject::WaylandDisplay(WaylandDisplay::new(self.get_new_id(), self.wl_socket.get_write_ref()));
                 self.children.push(child);
                 //self.collect_upstream_send();
                 let len = self.children.len() - 1;
@@ -49,15 +49,11 @@ impl Wayland{
             }
         }
 
-        /*for msg in &msgs{
-            println!("Writing message: {}", msg);
-        }*/
-
-        self.wl_socket.write_all_msgs(msgs);
+        self.wl_socket.borrow_mut().write_all_msgs(msgs);
     }
 
     pub fn read_downstream(&mut self){
-        let msgs = self.wl_socket.read_all_msgs();
+        let msgs = self.wl_socket.borrow_mut().read_all_msgs();
         for msg in msgs {
             //println!("Read message with id: {}", msg.message_id());
             for child in self.children.iter_mut(){

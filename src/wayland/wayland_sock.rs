@@ -6,6 +6,37 @@ pub use wayland_sock_internal::WaylandSockInternal;
 pub use wayland_sock_msg::WaylandSockMsg;
 pub use wayland_sock_write_buf::WaylandSockWriteBuffer;
 
+use {
+    std::{
+        rc::Rc,
+        cell::{
+            RefCell,
+            RefMut}}};
+
+pub struct WaylandSock {
+    sock_ref: Rc<RefCell<WaylandSockInternal>>
+}
+
+impl WaylandSock {
+    // ***** Public Functions *****
+    pub fn get_write_ref(&self) -> WaylandSockWriteBuffer{
+        WaylandSockWriteBuffer::new(self.sock_ref.clone())
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, WaylandSockInternal>{
+        self.sock_ref.borrow_mut()
+    }
+
+    // ***** Private Functions *****
+
+    // ***** Struct Init *****
+    pub fn new() -> WaylandSock {
+        WaylandSock{
+            sock_ref: Rc::new(RefCell::new(WaylandSockInternal::new()))
+        }
+    }
+}
+/*
 use std::os::unix::net::UnixStream;
 use std::env::var;
 use std::net::Shutdown;
@@ -208,3 +239,5 @@ impl Drop for WaylandSock{
         };
     }
 }
+
+ */

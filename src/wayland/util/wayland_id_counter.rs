@@ -1,3 +1,5 @@
+//TODO: Should be a far more sophisticated id manager that makes use of freed id's
+
 pub struct WaylandIDCounter{
     current_id: u32
 }

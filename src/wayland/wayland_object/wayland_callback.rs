@@ -19,7 +19,7 @@ pub struct WaylandCallback {
 
 impl WaylandCallback {
     // ***** Public Functions *****
-    pub fn callback(&mut self, callback_fn: Rc<RefCell<dyn WaylandCallbackHandle>>){
+    pub fn add_event_handler(&mut self, callback_fn: Rc<RefCell<dyn WaylandCallbackHandle>>){
         self.callbacks.push(callback_fn);
     }
 

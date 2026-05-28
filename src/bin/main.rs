@@ -1,14 +1,4 @@
-use wayland_lib::{
-    Wayland,
-    wayland_event_buf::WaylandEventBuffer,
-    wayland_object::{
-        wayland_callback::WaylandCallbackHandle,
-        wayland_registry::{
-            WaylandRegistryEvent,
-            RegistryCallbackHandle},
-        wayland_display::{
-            WaylandDisplayEvent,
-            DisplayCallbackHandle}}};
+use wayland_lib::prelude::*;
 
 pub struct Client{
     wayland: Wayland,
@@ -65,7 +55,7 @@ impl Client{
         let mut new_id = self.wayland.get_new_id();
         self.wayland.get_display().get_registry(new_id).add_event_handler(self.events.get_callback_ref());
         new_id = self.wayland.get_new_id();
-        self.wayland.get_display().sync(new_id).callback(self.events.get_callback_ref());
+        self.wayland.get_display().sync(new_id).add_event_handler(self.events.get_callback_ref());
 
         //let mut loop_count: u32 = 0;
         loop{

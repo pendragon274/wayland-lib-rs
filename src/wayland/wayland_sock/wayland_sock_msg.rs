@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[derive(Debug)]
 pub struct WaylandSockMsg{
     obj_id: u32,
     opcode: u16,

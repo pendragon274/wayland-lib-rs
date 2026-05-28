@@ -13,7 +13,9 @@ use crate::{
         WaylandObjectImpl,
         wayland_callback::WaylandCallback,
         wayland_registry::WaylandRegistry},
-    wayland_sock::WaylandSockMsg};
+    wayland_sock::{
+        WaylandSockMsg,
+        WaylandSockWriteBuffer}};
 
 pub trait DisplayCallbackHandle{
     fn error(&mut self, event: WaylandDisplayEvent);
@@ -23,8 +25,7 @@ pub trait DisplayCallbackHandle{
 pub struct WaylandDisplay{
     id: u32,
     children: Vec<WaylandObject>,
-    upstream_flagged: bool,
-    upstream_msgs: Vec<WaylandSockMsg>,
+    sock: WaylandSockWriteBuffer,
     display_callbacks: Vec<Rc<RefCell<dyn DisplayCallbackHandle>>>
 }
 
@@ -34,17 +35,13 @@ impl WaylandObjectImpl for WaylandDisplay{
     }
 
     fn is_upstream_flagged(&self) -> bool {
-        match self.upstream_flagged{
-            true => true,
-            false => {
-                for child in &self.children {
-                    if child.is_upstream_flagged() {
-                        return true;
-                    }
-                }
-                false
+        for child in &self.children{
+            if child.is_upstream_flagged(){
+                return true;
             }
         }
+
+        false
     }
 
     fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
@@ -70,11 +67,9 @@ impl WaylandObjectImpl for WaylandDisplay{
     }
 
     fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg> {
-        self.upstream_flagged = false;
-
-        let mut vec: Vec<WaylandSockMsg> = self.upstream_msgs.drain(..).collect();
-        for child in self.children.iter_mut() {
-            if child.is_upstream_flagged() {
+        let mut vec: Vec<WaylandSockMsg> = Vec::new();
+        for child in self.children.iter_mut(){
+            if child.is_upstream_flagged(){
                 vec.extend(child.rcv_upstream_msg());
             }
         }
@@ -87,16 +82,16 @@ impl WaylandDisplay{
     // ***** Public Functions *****
     pub fn get_registry(&mut self, new_id: u32) -> &mut WaylandRegistry{
         match self.has_registry(){
-            Some(idx) => {
+            Some(idx) =>{
                 match &mut self.children[idx]{
                     WaylandObject::WaylandRegistry(reg) => reg,
                     _ => panic!("WaylandDisplay::get_registry unwrapped an index of its child expecting a WaylandRegistry but found something else.")
                 }
-            }, None => {
+            }, None =>{
                 let child = WaylandObject::WaylandRegistry(WaylandRegistry::new(new_id));
                 self.children.push(child);
-                self.upstream_msgs.push(WaylandSockMsg::new(self.get_id(), 1, new_id.to_ne_bytes().to_vec()));
-                self.upstream_flagged = true;
+                let msg = WaylandSockMsg::new(self.get_id(), 1, new_id.to_ne_bytes().to_vec());
+                self.sock.write_all_msgs(vec![msg]);
                 let len = self.children.len() - 1;
                 match &mut self.children[len]{
                     WaylandObject::WaylandRegistry(reg) => reg,
@@ -118,11 +113,10 @@ impl WaylandDisplay{
     }
 
     pub fn sync(&mut self, callback_id: u32) -> &mut WaylandCallback{
-        self.upstream_flagged = true;
+        self.sock.write_all_msgs(vec![WaylandSockMsg::new(self.get_id(), 0, callback_id.to_ne_bytes().to_vec())]);
 
-        self.upstream_msgs.push(WaylandSockMsg::new(self.get_id(), 0, callback_id.to_ne_bytes().to_vec()));
-        let WaylandObject::WaylandCallback(callback) = self.children.push_mut(WaylandObject::WaylandCallback(WaylandCallback::new(callback_id))) else {
-            panic!("WaylandDisplay::sync expects an item it just pushed to its children to be the same type it pushed.");
+        let WaylandObject::WaylandCallback(callback) = self.children.push_mut(WaylandObject::WaylandCallback(WaylandCallback::new(callback_id))) else{
+            panic!("WaylandDisplay::sync expects an item it just pushed to its children to be the same type it just pushed.");
         };
 
         callback
@@ -159,14 +153,13 @@ impl WaylandDisplay{
     }
 
     // ***** Init Struct *****
-    pub fn new(new_id: u32) -> WaylandDisplay{
+    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> WaylandDisplay{
         println!("Creating WaylandDisplay object with id: {}", new_id);
 
         WaylandDisplay{
             id: new_id,
             children: Vec::new(),
-            upstream_flagged: false,
-            upstream_msgs: Vec::new(),
+            sock: new_sock,
             display_callbacks: Vec::new()
         }
     }
