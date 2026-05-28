@@ -1,11 +1,14 @@
-use wayland_lib::prelude::*;
-use wayland::Wayland;
-use wayland_event_buf::WaylandEventBuffer;
-use wayland_object::wayland_display::DisplayCallbackHandle;
-use wayland_object::wayland_display::WaylandDisplayEvent;
-use wayland_object::wayland_registry::RegistryCallbackHandle;
-use wayland_object::wayland_registry::WaylandRegistryEvent;
-use wayland_object::wayland_callback::WaylandCallbackHandle;
+use wayland_lib::{
+    Wayland,
+    wayland_event_buf::WaylandEventBuffer,
+    wayland_object::{
+        wayland_callback::WaylandCallbackHandle,
+        wayland_registry::{
+            WaylandRegistryEvent,
+            RegistryCallbackHandle},
+        wayland_display::{
+            WaylandDisplayEvent,
+            DisplayCallbackHandle}}};
 
 pub struct Client{
     wayland: Wayland,
@@ -18,9 +21,16 @@ impl RegistryCallbackHandle for Client {
             "wl_shm" =>{
                 let id = self.wayland.get_new_id();
                 self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
+                //let id = self.wayland.get_new_id();
+                //self.wayland.get_display().sync(id);
             }, "wl_compositor" =>{
                 let id = self.wayland.get_new_id();
+                //println!("Binding compositor with id: {}", id);
                 self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
+                //let surface_id = self.wayland.get_new_id();
+                //if let Some(WaylandObject::WaylandCompositor(compositor)) = self.wayland.get_child(id){
+                //    compositor.create_surface(surface_id);
+                //}
             }, "xdg_wm_base" =>{
                 let id = self.wayland.get_new_id();
                 self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);

@@ -1,17 +1,20 @@
-use wayland_display::WaylandDisplay;
-use wayland_registry::WaylandRegistry;
-use wayland_callback::WaylandCallback;
-use wayland_shm::WaylandSHM;
-use crate::wayland_object::wayland_compositor::WaylandCompositor;
-use crate::wayland_object::wayland_xdg_wm_base::WaylandXDGWMBase;
-use crate::wayland_sock::WaylandSockMsg;
-
 pub mod wayland_display;
 pub mod wayland_registry;
 pub mod wayland_callback;
-pub mod wayland_shm;
 pub mod wayland_compositor;
+pub mod wayland_shm;
 pub mod wayland_xdg_wm_base;
+
+use crate::{
+    wayland_object::{
+        wayland_display::WaylandDisplay,
+        wayland_registry::WaylandRegistry,
+        wayland_callback::WaylandCallback,
+        wayland_shm::WaylandSHM,
+        wayland_compositor::WaylandCompositor,
+        wayland_xdg_wm_base::WaylandXDGWMBase},
+    wayland_sock::{
+        WaylandSockMsg}};
 
 pub enum WaylandObject{
     WaylandDisplay(WaylandDisplay),
@@ -25,7 +28,7 @@ pub enum WaylandObject{
 pub trait WaylandObjectImpl{
     fn get_id(&self) -> u32;
     fn is_upstream_flagged(&self) -> bool;
-    fn get_children(&mut self) -> Vec<&mut WaylandObject>;
+    fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject>;
     fn msg_downstream(&mut self, msg: WaylandSockMsg);
     fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg>;
 }
@@ -60,20 +63,20 @@ impl WaylandObjectImpl for WaylandObject{
         }
     }
 
-    fn get_children(&mut self) -> Vec<&mut WaylandObject> {
+    fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
         match self{
             WaylandObject::WaylandDisplay(disp)=>{
-                disp.get_children()
+                disp.get_child(child_id)
             }, WaylandObject::WaylandRegistry(reg)=>{
-                reg.get_children()
+                reg.get_child(child_id)
             }, WaylandObject::WaylandCallback(call)=>{
-               call.get_children()
+               call.get_child(child_id)
             }, WaylandObject::WaylandSHM(shm)=>{
-                shm.get_children()
+                shm.get_child(child_id)
             }, WaylandObject::WaylandCompositor(compositor)=>{
-                compositor.get_children()
+                compositor.get_child(child_id)
             }, WaylandObject::WaylandXDGWMBase(xdg)=>{
-                xdg.get_children()
+                xdg.get_child(child_id)
             }
         }
     }

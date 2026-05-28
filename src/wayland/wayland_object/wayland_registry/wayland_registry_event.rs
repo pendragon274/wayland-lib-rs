@@ -1,6 +1,11 @@
 use std::fmt::{Display, Formatter};
 use crate::wayland_sock::wayland_sock_msg::WaylandSockMsg;
 
+pub mod constants{
+    pub const WL_REGISTRY_EVENT_GLOBAL: u16 = 0;
+    pub const WL_REGISTRY_EVENT_REMOVE: u16 = 1;
+}
+
 pub struct WaylandRegistryEvent{
     name: u32,
     interface_str: String,

@@ -1,10 +1,15 @@
+pub mod wayland_sock_internal;
 pub mod wayland_sock_msg;
+pub mod wayland_sock_write_buf;
+
+pub use wayland_sock_internal::WaylandSockInternal;
+pub use wayland_sock_msg::WaylandSockMsg;
+pub use wayland_sock_write_buf::WaylandSockWriteBuffer;
 
 use std::os::unix::net::UnixStream;
 use std::env::var;
 use std::net::Shutdown;
 use std::io::{Error, ErrorKind, Read, Result, Write};
-pub(crate) use wayland_sock_msg::WaylandSockMsg;
 
 pub struct WaylandSock{
     stream: Option<UnixStream>
@@ -57,6 +62,7 @@ impl WaylandSock{
 
     pub fn write_all_msgs(&mut self, msgs: Vec<WaylandSockMsg>) {
         for msg in msgs{
+            println!("Writing msg: {}", msg);
             self.write(msg).unwrap();
         }
     }

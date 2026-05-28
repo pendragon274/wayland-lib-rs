@@ -1,8 +1,18 @@
-use std::fmt::{Display, Formatter};
-use crate::wayland_sock::wayland_sock_msg::WaylandSockMsg;
-use crate::util::byte_cruncher::ByteCruncher;
-use crate::wayland_object::wayland_display::{WL_DISPLAY_EVENT_ERROR, WL_DISPLAY_EVENT_DELETE_ID};
+use std::fmt::{
+    Display,
+    Formatter};
+use crate::{
+    util::ByteCruncher,
+    wayland_sock::WaylandSockMsg};
 
+pub mod constants {
+    pub const WL_DISPLAY_EVENT_ERROR: u16 = 0;
+    pub const WL_DISPLAY_EVENT_DELETE_ID: u16 = 1;
+}
+
+use constants::*;
+
+#[derive(Clone, Copy, Debug)]
 pub enum WaylandDisplayEventCode{
     InvalidObject,
     InvalidMethod,
@@ -23,18 +33,6 @@ impl WaylandDisplayEventCode {
     }
 }
 
-impl Clone for WaylandDisplayEventCode {
-    fn clone(&self) -> WaylandDisplayEventCode {
-        match self {
-            WaylandDisplayEventCode::InvalidObject => WaylandDisplayEventCode::InvalidObject,
-            WaylandDisplayEventCode::InvalidMethod => WaylandDisplayEventCode::InvalidMethod,
-            WaylandDisplayEventCode::NoMemory => WaylandDisplayEventCode::NoMemory,
-            WaylandDisplayEventCode::Implementation => WaylandDisplayEventCode::Implementation,
-            WaylandDisplayEventCode::DeleteID => WaylandDisplayEventCode::DeleteID
-        }
-    }
-}
-
 impl Display for WaylandDisplayEventCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let my_str = match self{
@@ -49,6 +47,7 @@ impl Display for WaylandDisplayEventCode {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct WaylandDisplayEvent{
     id: u32,
     code: WaylandDisplayEventCode,
@@ -107,16 +106,5 @@ impl WaylandDisplayEvent{
                 }
             }
         }
-        /*let message = msg.message();
-        let str_len = u32::from_ne_bytes(message[4..8].try_into().unwrap());
-        let interface_str_end = 7 + (str_len as usize);
-        let align_start = interface_str_end + (4 - (interface_str_end % 4));
-        let version = u32::from_ne_bytes(message[align_start..align_start+4].try_into().unwrap());
-
-        WaylandDisplayEvent{
-            name: u32::from_ne_bytes(message[0..4].try_into().unwrap()),
-            interface_str: String::from_utf8(message[8..interface_str_end].to_vec()).unwrap(),
-            version
-        }*/
     }
 }

@@ -1,6 +1,17 @@
-use crate::wayland_sock::{WaylandSock, WaylandSockMsg};
-use crate::wayland_id_counter::WaylandIDCounter;
-use crate::wayland_object::{WaylandObject, WaylandObjectImpl, wayland_display::WaylandDisplay};
+pub mod util;
+pub mod wayland_object;
+pub mod wayland_sock;
+pub mod wayland_event_buf;
+
+use crate::{
+    wayland_sock::{
+        WaylandSock,
+        WaylandSockMsg},
+    wayland_object::{
+        WaylandObject,
+        WaylandObjectImpl,
+        wayland_display::WaylandDisplay},
+    util::WaylandIDCounter};
 
 pub struct Wayland{
     wl_socket: WaylandSock,
@@ -62,6 +73,18 @@ impl Wayland{
 
     pub fn get_new_id(&mut self) -> u32{
         self.id_counter.get_new_id()
+    }
+
+    pub fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject>{
+        for child in self.children.iter_mut(){
+            if child.get_id() == child_id{
+                return Some(child);
+            }else if let Some(internal_child) = child.get_child(child_id){
+                return Some(internal_child);
+            }
+        }
+
+        None
     }
 
     // ***** Private Functions *****

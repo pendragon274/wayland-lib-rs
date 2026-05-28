@@ -31,7 +31,7 @@ impl WaylandObjectImpl for WaylandXDGWMBase{
         false
     }
 
-    fn get_children(&mut self) -> Vec<&mut WaylandObject> {
+    fn get_child(&mut self, _child_id: u32) -> Option<&mut WaylandObject> {
         todo!()
     }
 

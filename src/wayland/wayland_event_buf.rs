@@ -1,9 +1,15 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::wayland_object::wayland_callback::WaylandCallbackHandle;
-use crate::wayland_object::wayland_display::{DisplayCallbackHandle, WaylandDisplayEvent};
-use crate::wayland_object::wayland_registry::RegistryCallbackHandle;
-use crate::wayland_object::wayland_registry::WaylandRegistryEvent;
+use crate::{
+    wayland_object::{
+        wayland_callback::WaylandCallbackHandle,
+        wayland_display::{
+            DisplayCallbackHandle,
+            wayland_display_event::{
+                WaylandDisplayEvent}},
+        wayland_registry::{
+            RegistryCallbackHandle, 
+            WaylandRegistryEvent}}};
 
 pub struct WaylandEventBuffer{
     internal_buffer: Rc<RefCell<WaylandEventBufferInternal>>

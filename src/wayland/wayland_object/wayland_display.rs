@@ -1,16 +1,19 @@
 pub mod wayland_display_event;
+pub use wayland_display_event::{
+    WaylandDisplayEvent,
+    constants::*};
 
-use std::cell::RefCell;
-use std::rc::Rc;
-pub use crate::wayland_object::wayland_display::wayland_display_event::WaylandDisplayEvent;
-use crate::wayland_object::WaylandObject;
-use crate::wayland_object::WaylandCallback;
-use crate::wayland_sock::WaylandSockMsg;
-use crate::wayland_object::WaylandObjectImpl;
-use crate::wayland_object::wayland_registry::WaylandRegistry;
+use std::{
+    cell::RefCell,
+    rc::Rc};
 
-pub const WL_DISPLAY_EVENT_ERROR: u16 = 0;
-pub const WL_DISPLAY_EVENT_DELETE_ID: u16 = 1;
+use crate::{
+    wayland_object::{
+        WaylandObject,
+        WaylandObjectImpl,
+        wayland_callback::WaylandCallback,
+        wayland_registry::WaylandRegistry},
+    wayland_sock::WaylandSockMsg};
 
 pub trait DisplayCallbackHandle{
     fn error(&mut self, event: WaylandDisplayEvent);
@@ -44,12 +47,16 @@ impl WaylandObjectImpl for WaylandDisplay{
         }
     }
 
-    fn get_children(&mut self) -> Vec<&mut WaylandObject> {
-        let mut vec: Vec<&mut WaylandObject> = Vec::new();
+    fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
         for child in self.children.iter_mut(){
-            vec.push(child);
+            if child.get_id() == child_id{
+                return Some(child);
+            }else if let Some(internal_child) = child.get_child(child_id){
+                return Some(internal_child);
+            }
         }
-        vec
+
+        None
     }
 
     fn msg_downstream(&mut self, msg: WaylandSockMsg) {
@@ -65,14 +72,13 @@ impl WaylandObjectImpl for WaylandDisplay{
     fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg> {
         self.upstream_flagged = false;
 
-        let mut vec: Vec<WaylandSockMsg> = Vec::new();
+        let mut vec: Vec<WaylandSockMsg> = self.upstream_msgs.drain(..).collect();
         for child in self.children.iter_mut() {
             if child.is_upstream_flagged() {
                 vec.extend(child.rcv_upstream_msg());
             }
         }
 
-        vec.extend(self.upstream_msgs.drain(..));
         vec
     }
 }

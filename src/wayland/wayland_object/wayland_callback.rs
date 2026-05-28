@@ -1,7 +1,12 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::wayland_object::{WaylandObject, WaylandObjectImpl};
-use crate::wayland_sock::WaylandSockMsg;
+use{
+    std::{
+        cell::RefCell,
+        rc::Rc},
+    crate::{
+        wayland_sock::WaylandSockMsg,
+        wayland_object::{
+            WaylandObject,
+            WaylandObjectImpl}}};
 
 pub trait WaylandCallbackHandle{
     fn signal(&mut self, id: u32);
@@ -43,8 +48,8 @@ impl WaylandObjectImpl for WaylandCallback {
         false
     }
 
-    fn get_children(&mut self) -> Vec<&mut WaylandObject> {
-        Vec::new()
+    fn get_child(&mut self, _: u32) -> Option<&mut WaylandObject> {
+        None
     }
 
     fn msg_downstream(&mut self, msg: WaylandSockMsg) {
