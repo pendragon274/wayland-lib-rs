@@ -3,11 +3,13 @@ use crate::{
         WaylandObject,
         WaylandObjectImpl},
     wayland_sock::{
-        WaylandSockMsg}};
+        WaylandSockMsg,
+        WaylandSockWriteBuffer}};
 
 pub struct WaylandSHM{
     id: u32,
-    children: Vec<WaylandObject>
+    children: Vec<WaylandObject>,
+    sock: WaylandSockWriteBuffer
 }
 
 impl WaylandSHM{
@@ -18,11 +20,12 @@ impl WaylandSHM{
     }
 
     // ***** Init Struct *****
-    pub fn new(new_id: u32) -> WaylandSHM{
+    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> WaylandSHM{
         println!("Creating WaylandSHM object with id: {}", new_id);
         WaylandSHM{
             id: new_id,
-            children: Vec::new()
+            children: Vec::new(),
+            sock: new_sock
         }
     }
 }
@@ -36,8 +39,16 @@ impl WaylandObjectImpl for WaylandSHM{
         false
     }
 
-    fn get_child(&mut self, _child_id: u32) -> Option<&mut WaylandObject> {
-        todo!()
+    fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
+        for child in self.children.iter_mut(){
+            if child.get_id() == child_id{
+                return Some(child);
+            }else if let Some(internal_child) = child.get_child(child_id){
+                return Some(internal_child);
+            }
+        }
+
+        None
     }
 
     fn msg_downstream(&mut self, msg: WaylandSockMsg) {

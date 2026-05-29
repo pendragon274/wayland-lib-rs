@@ -1,38 +1,40 @@
 use crate::wayland_object::{WaylandObject, WaylandObjectImpl};
-use crate::wayland_sock::WaylandSockMsg;
+use crate::wayland_sock::{WaylandSockMsg, WaylandSockWriteBuffer};
 
-pub struct WaylandXDGWMBase{
+pub struct XDGTopLevel{
     id: u32,
+    sock: WaylandSockWriteBuffer,
     children: Vec<WaylandObject>
 }
 
-impl WaylandXDGWMBase{
+impl XDGTopLevel {
     // ***** Public Functions *****
+
     // ***** Private Functions *****
     fn respond_to_msg(&mut self, msg: WaylandSockMsg){
-        println!("xdg_wm_base received event: {}", msg);
+        println!("XDGTopLevel received message: {}", msg);
     }
 
-    // ***** Init Struct *****
-    pub fn new(new_id: u32) -> WaylandXDGWMBase{
-        println!("Creating WaylandXDGWMBase object with id: {}", new_id);
-        WaylandXDGWMBase{
+    // ***** Struct Init *****
+    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> XDGTopLevel {
+        XDGTopLevel {
             id: new_id,
+            sock: new_sock,
             children: Vec::new()
         }
     }
 }
 
-impl WaylandObjectImpl for WaylandXDGWMBase{
+impl WaylandObjectImpl for XDGTopLevel {
     fn get_id(&self) -> u32 {
         self.id
     }
 
     fn is_upstream_flagged(&self) -> bool {
-        false
+        todo!()
     }
 
-    fn get_child(&mut self, _child_id: u32) -> Option<&mut WaylandObject> {
+    fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
         todo!()
     }
 

@@ -17,7 +17,7 @@ use {
             WaylandObjectImpl,
             wayland_shm::WaylandSHM,
             wayland_compositor::WaylandCompositor,
-            wayland_xdg_wm_base::WaylandXDGWMBase},
+            xdg_wm_base::XDGWMBase},
         wayland_sock::{
             WaylandSockMsg,
             WaylandSockWriteBuffer}}};
@@ -43,13 +43,13 @@ impl WaylandRegistry{
     pub fn bind(&mut self, new_id: u32, wl_registry_event: WaylandRegistryEvent){
         match wl_registry_event.interface_str().as_str(){
             "wl_shm" =>{
-                let child = WaylandObject::WaylandSHM(WaylandSHM::new(new_id));
+                let child = WaylandObject::WaylandSHM(WaylandSHM::new(new_id, self.sock.clone()));
                 self.children.push(child);
             }, "wl_compositor" =>{
                 let child = WaylandObject::WaylandCompositor(WaylandCompositor::new(new_id, self.sock.clone()));
                 self.children.push(child);
             }, "xdg_wm_base" =>{
-                let child = WaylandObject::WaylandXDGWMBase(WaylandXDGWMBase::new(new_id));
+                let child = WaylandObject::XDGWMBase(XDGWMBase::new(new_id, self.sock.clone()));
                 self.children.push(child);
             }, _=>{
                 todo!("Unimplemented and unknown interface for WaylandRegistry::bind!")

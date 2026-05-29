@@ -3,18 +3,23 @@ pub mod wayland_registry;
 pub mod wayland_callback;
 pub mod wayland_compositor;
 pub mod wayland_shm;
-pub mod wayland_xdg_wm_base;
+pub mod xdg_wm_base;
+pub mod wayland_surface;
+pub mod xdg_surface;
+pub mod xdg_top_level;
 
-use crate::{
-    wayland_object::{
-        wayland_display::WaylandDisplay,
-        wayland_registry::WaylandRegistry,
-        wayland_callback::WaylandCallback,
-        wayland_shm::WaylandSHM,
-        wayland_compositor::WaylandCompositor,
-        wayland_xdg_wm_base::WaylandXDGWMBase},
-    wayland_sock::{
-        WaylandSockMsg}};
+pub use crate::wayland_object::{
+    wayland_display::WaylandDisplay,
+    wayland_registry::WaylandRegistry,
+    wayland_callback::WaylandCallback,
+    wayland_shm::WaylandSHM,
+    wayland_compositor::WaylandCompositor,
+    wayland_surface::WaylandSurface,
+    xdg_wm_base::XDGWMBase,
+    xdg_surface::XDGSurface,
+    xdg_top_level::XDGTopLevel};
+
+use crate::wayland_sock::WaylandSockMsg;
 
 pub enum WaylandObject{
     WaylandDisplay(WaylandDisplay),
@@ -22,7 +27,10 @@ pub enum WaylandObject{
     WaylandCallback(WaylandCallback),
     WaylandSHM(WaylandSHM),
     WaylandCompositor(WaylandCompositor),
-    WaylandXDGWMBase(WaylandXDGWMBase)
+    WaylandSurface(WaylandSurface),
+    XDGWMBase(XDGWMBase),
+    XDGSurface(XDGSurface),
+    XDGTopLevel(XDGTopLevel)
 }
 
 pub trait WaylandObjectImpl{
@@ -51,8 +59,14 @@ impl WaylandObjectImpl for WaylandObject{
                 shm.get_id()
             }, WaylandObject::WaylandCompositor(compositor) =>{
                 compositor.get_id()
-            }, WaylandObject::WaylandXDGWMBase(xdg) =>{
+            }, WaylandObject::WaylandSurface(surface) =>{
+                surface.get_id()
+            }, WaylandObject::XDGWMBase(xdg) =>{
                 xdg.get_id()
+            }, WaylandObject::XDGSurface(xdg_surface) =>{
+                xdg_surface.get_id()
+            }, WaylandObject::XDGTopLevel(xdg_toplevel) =>{
+                xdg_toplevel.get_id()
             }
         }
     }
@@ -64,7 +78,10 @@ impl WaylandObjectImpl for WaylandObject{
             WaylandObject::WaylandCallback(call) => call.is_upstream_flagged(),
             WaylandObject::WaylandSHM(shm) => shm.is_upstream_flagged(),
             WaylandObject::WaylandCompositor(compositor) => compositor.is_upstream_flagged(),
-            WaylandObject::WaylandXDGWMBase(xdg) => xdg.is_upstream_flagged()
+            WaylandObject::WaylandSurface(surface) => surface.is_upstream_flagged(),
+            WaylandObject::XDGWMBase(xdg) => xdg.is_upstream_flagged(),
+            WaylandObject::XDGSurface(xdg_surface) => xdg_surface.is_upstream_flagged(),
+            WaylandObject::XDGTopLevel(xdg_toplevel) => xdg_toplevel.is_upstream_flagged()
         }
     }
 
@@ -80,8 +97,14 @@ impl WaylandObjectImpl for WaylandObject{
                 shm.get_child(child_id)
             }, WaylandObject::WaylandCompositor(compositor)=>{
                 compositor.get_child(child_id)
-            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+            }, WaylandObject::WaylandSurface(surface)=>{
+                surface.get_child(child_id)
+            }, WaylandObject::XDGWMBase(xdg)=>{
                 xdg.get_child(child_id)
+            }, WaylandObject::XDGSurface(xdg_surface)=>{
+                xdg_surface.get_child(child_id)
+            }, WaylandObject::XDGTopLevel(xdg_toplevel)=>{
+                xdg_toplevel.get_child(child_id)
             }
         }
     }
@@ -98,8 +121,14 @@ impl WaylandObjectImpl for WaylandObject{
                 shm.msg_downstream(msg)
             }, WaylandObject::WaylandCompositor(compositor)=>{
                 compositor.msg_downstream(msg)
-            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+            }, WaylandObject::WaylandSurface(surface)=>{
+                surface.msg_downstream(msg)
+            }, WaylandObject::XDGWMBase(xdg)=>{
                 xdg.msg_downstream(msg)
+            }, WaylandObject::XDGSurface(xdg_surface)=>{
+                xdg_surface.msg_downstream(msg)
+            }, WaylandObject::XDGTopLevel(xdg_toplevel)=>{
+                xdg_toplevel.msg_downstream(msg)
             }
         }
     }
@@ -116,8 +145,14 @@ impl WaylandObjectImpl for WaylandObject{
                 shm.rcv_upstream_msg()
             }, WaylandObject::WaylandCompositor(compositor)=>{
                 compositor.rcv_upstream_msg()
-            }, WaylandObject::WaylandXDGWMBase(xdg)=>{
+            }, WaylandObject::WaylandSurface(surface)=>{
+                surface.rcv_upstream_msg()
+            }, WaylandObject::XDGWMBase(xdg)=>{
                 xdg.rcv_upstream_msg()
+            }, WaylandObject::XDGSurface(xdg_surface)=>{
+                xdg_surface.rcv_upstream_msg()
+            }, WaylandObject::XDGTopLevel(xdg_toplevel)=>{
+                xdg_toplevel.rcv_upstream_msg()
             }
         }
     }

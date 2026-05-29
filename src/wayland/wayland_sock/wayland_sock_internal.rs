@@ -56,7 +56,7 @@ impl WaylandSockInternal{
     }
 
     pub fn write(&mut self, sock_msg: WaylandSockMsg) -> Result<()>{
-        println!("Writing to sock: {}", sock_msg);
+        //println!("Writing to sock: {}", sock_msg);
         self.write_all(&sock_msg.to_raw_vec())
     }
 

@@ -1,54 +1,54 @@
 use crate::{
-    util::{
-        ByteBuilder,
-        ByteBuilderCompatible},
     wayland_object::{
         WaylandObject,
-        WaylandObjectImpl,
-        WaylandSurface},
+        WaylandObjectImpl},
     wayland_sock::{
         WaylandSockMsg,
         WaylandSockWriteBuffer}};
 
 pub mod constants{
-    pub const WL_COMPOSITOR_REQUEST_CREATE_SURFACE: u16 = 0;
-    pub const WL_COMPOSITOR_REQUEST_CREATE_REGION: u16 = 1;
+    pub const WL_SURFACE_REQUEST_DESTROY: u16 = 0;
+    pub const WL_SURFACE_REQUEST_ATTACH: u16 = 1;
+    pub const WL_SURFACE_REQUEST_DAMAGE: u16 = 2;
+    pub const WL_SURFACE_REQUEST_FRAME: u16 = 3;
+    pub const WL_SURFACE_REQUEST_SET_OPAQUE_REGION: u16 = 4;
+    pub const WL_SURFACE_REQUEST_SET_INPUT_REGION: u16 = 5;
+    pub const WL_SURFACE_REQUEST_COMMIT: u16 = 6;
+    pub const WL_SURFACE_REQUEST_SET_BUFFER_TRANSFORM: u16 = 7;
+    pub const WL_SURFACE_REQUEST_SET_BUFFER_SCALE: u16 = 8;
+    pub const WL_SURFACE_REQUEST_DAMAGE_BUFFER: u16 = 9;
+    pub const WL_SURFACE_REQUEST_OFFSET: u16 = 10;
+
+    pub const WL_SURFACE_EVENT_ENTER: u16 = 0;
+    pub const WL_SURFACE_EVENT_LEAVE: u16 = 1;
+    pub const WL_SURFACE_EVENT_PREFERRED_BUFFER_SCALE: u16 = 2;
+    pub const WL_SURFACE_EVENT_PREFERRED_BUFFER_TRANSFORM: u16 = 3;
+
 }
 
 use constants::*;
 
-pub struct WaylandCompositor{
+pub struct WaylandSurface{
     id: u32,
     children: Vec<WaylandObject>,
     sock: WaylandSockWriteBuffer
 }
 
-impl WaylandCompositor{
+impl WaylandSurface {
     // ***** Public Functions *****
-    /*pub fn create_surface(&mut self, new_id: u32){
-        let msg = ByteBuilder::from(new_id);
-        self.upstream_flagged = true;
-        self.upstream_msgs.push(WaylandSockMsg::new(self.id, 0, msg.to_bytes()));
-    }*/
-
-    pub fn create_surface(&mut self, new_id: u32){
-        self.children.push(WaylandObject::WaylandSurface(WaylandSurface::new(new_id, self.sock.clone())));
-        self.sock.write_msg(WaylandSockMsg::new(self.id, WL_COMPOSITOR_REQUEST_CREATE_SURFACE, ByteBuilder::from(new_id).to_bytes()));
-    }
-
-    pub fn create_region(&mut self, _new_id: u32){
-        todo!("Not implemented yet!");
+    pub fn commit(&mut self){
+        self.sock.write_msg(WaylandSockMsg::new(self.id, WL_SURFACE_REQUEST_COMMIT, Vec::new()));
     }
 
     // ***** Private Functions *****
     fn respond_to_msg(&mut self, msg: WaylandSockMsg){
-        println!("Compositor received event: {}", msg);
+        println!("WaylandSurface received msg: {}", msg);
     }
 
-    // ***** Init Struct *****
-    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> WaylandCompositor{
-        println!("Creating WaylandCompositor object with id: {}", new_id);
-        WaylandCompositor{
+    // ***** Struct Init *****
+    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> WaylandSurface {
+        println!("Creating WaylandSurface object with id: {}", new_id);
+        WaylandSurface{
             id: new_id,
             children: Vec::new(),
             sock: new_sock
@@ -56,7 +56,7 @@ impl WaylandCompositor{
     }
 }
 
-impl WaylandObjectImpl for WaylandCompositor{
+impl WaylandObjectImpl for WaylandSurface {
     fn get_id(&self) -> u32 {
         self.id
     }
