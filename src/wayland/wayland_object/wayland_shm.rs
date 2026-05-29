@@ -19,6 +19,7 @@ impl WaylandSHM{
 
     // ***** Init Struct *****
     pub fn new(new_id: u32) -> WaylandSHM{
+        println!("Creating WaylandSHM object with id: {}", new_id);
         WaylandSHM{
             id: new_id,
             children: Vec::new()

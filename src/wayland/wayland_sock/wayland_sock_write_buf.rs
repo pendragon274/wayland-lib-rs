@@ -17,6 +17,10 @@ impl WaylandSockWriteBuffer{
         self.sock_ref.borrow_mut().write_all_msgs(msgs);
     }
 
+    pub fn write_msg(&mut self, msg: WaylandSockMsg){
+        self.sock_ref.borrow_mut().write(msg).expect("Wayland sock encountered an error from WaylandSockWriteBuffer::write_msg and could not recover.");
+    }
+
     // ***** Private Functions *****
 
     // ***** Struct Init

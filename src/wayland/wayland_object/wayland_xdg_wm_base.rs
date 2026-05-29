@@ -15,6 +15,7 @@ impl WaylandXDGWMBase{
 
     // ***** Init Struct *****
     pub fn new(new_id: u32) -> WaylandXDGWMBase{
+        println!("Creating WaylandXDGWMBase object with id: {}", new_id);
         WaylandXDGWMBase{
             id: new_id,
             children: Vec::new()

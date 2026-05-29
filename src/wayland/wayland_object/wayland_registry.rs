@@ -19,7 +19,8 @@ use {
             wayland_compositor::WaylandCompositor,
             wayland_xdg_wm_base::WaylandXDGWMBase},
         wayland_sock::{
-            WaylandSockMsg}}};
+            WaylandSockMsg,
+            WaylandSockWriteBuffer}}};
 
 pub trait RegistryCallbackHandle{
     fn global_add(&mut self, wl_registry_object: WaylandRegistryEvent);
@@ -28,9 +29,8 @@ pub trait RegistryCallbackHandle{
 
 pub struct WaylandRegistry{
     id: u32,
-    upstream_flagged: bool,
     children: Vec<WaylandObject>,
-    upstream_msgs: Vec<WaylandSockMsg>,
+    sock: WaylandSockWriteBuffer,
     global_callbacks: Vec<Rc<RefCell<dyn RegistryCallbackHandle>>>
 }
 
@@ -46,7 +46,7 @@ impl WaylandRegistry{
                 let child = WaylandObject::WaylandSHM(WaylandSHM::new(new_id));
                 self.children.push(child);
             }, "wl_compositor" =>{
-                let child = WaylandObject::WaylandCompositor(WaylandCompositor::new(new_id));
+                let child = WaylandObject::WaylandCompositor(WaylandCompositor::new(new_id, self.sock.clone()));
                 self.children.push(child);
             }, "xdg_wm_base" =>{
                 let child = WaylandObject::WaylandXDGWMBase(WaylandXDGWMBase::new(new_id));
@@ -56,11 +56,7 @@ impl WaylandRegistry{
             }
         }
 
-        //let bind_request = self.make_bind_request_msg(new_id, wl_registry_event);
-        //println!("Bind request: {:?}", bind_request.to_raw_vec());
-        //self.upstream_msgs.push(bind_request);
-        self.upstream_msgs.push(self.make_bind_request_msg(new_id, wl_registry_event));
-        self.upstream_flagged = true;
+        self.sock.write_msg(self.make_bind_request_msg(new_id, wl_registry_event));
     }
 
     // ***** Private Functions *****
@@ -92,36 +88,32 @@ impl WaylandRegistry{
     }
 
     // ***** Init Struct *****
-    pub fn new(new_id: u32) -> WaylandRegistry{
+    pub fn new(new_id: u32, new_sock: WaylandSockWriteBuffer) -> WaylandRegistry{
         println!("Creating WaylandRegistry object with id: {}", new_id);
 
         WaylandRegistry{
             id: new_id,
-            upstream_flagged: false,
             children: Vec::new(),
-            upstream_msgs: Vec::new(),
+            sock: new_sock,
             global_callbacks: Vec::new()
         }
     }
 }
 
+#[allow(deprecated)]
 impl WaylandObjectImpl for WaylandRegistry{
     fn get_id(&self) -> u32 {
         self.id
     }
 
     fn is_upstream_flagged(&self) -> bool {
-        match self.upstream_flagged{
-            true => true,
-            false => {
-                for child in &self.children {
-                    if child.is_upstream_flagged() {
-                        return true;
-                    }
-                }
-                false
+        for child in &self.children{
+            if child.is_upstream_flagged(){
+                return true;
             }
         }
+
+        false
     }
 
     fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject> {
@@ -147,11 +139,10 @@ impl WaylandObjectImpl for WaylandRegistry{
     }
 
     fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg> {
-        self.upstream_flagged = false;
+        let mut vec: Vec<WaylandSockMsg> = Vec::new();
 
-        let mut vec: Vec<WaylandSockMsg> = self.upstream_msgs.drain(..).collect();
-        for child in self.children.iter_mut() {
-            if child.is_upstream_flagged() {
+        for child in self.children.iter_mut(){
+            if child.is_upstream_flagged(){
                 vec.extend(child.rcv_upstream_msg());
             }
         }

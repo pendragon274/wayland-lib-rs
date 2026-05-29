@@ -1,29 +1,29 @@
 use wayland_lib::prelude::*;
+use wayland_lib::wayland_object::WaylandObject;
 
 pub struct Client{
     wayland: Wayland,
-    events: WaylandEventBuffer
+    events: WaylandEventBuffer,
+    id_counter: WaylandIDCounter
 }
 
 impl RegistryCallbackHandle for Client {
     fn global_add(&mut self, wl_registry_object: WaylandRegistryEvent) {
         match wl_registry_object.interface_str().as_str(){
             "wl_shm" =>{
-                let id = self.wayland.get_new_id();
-                self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
-                //let id = self.wayland.get_new_id();
-                //self.wayland.get_display().sync(id);
+                self.wayland.get_display().get_registry_no_create().unwrap().bind(self.id_counter.get_new_id(), wl_registry_object);
+                //self.wayland.get_display().sync(self.id_counter.get_new_id());
             }, "wl_compositor" =>{
-                let id = self.wayland.get_new_id();
-                //println!("Binding compositor with id: {}", id);
-                self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
-                //let surface_id = self.wayland.get_new_id();
-                //if let Some(WaylandObject::WaylandCompositor(compositor)) = self.wayland.get_child(id){
-                //    compositor.create_surface(surface_id);
-                //}
+                let compositor_id = self.id_counter.get_new_id();
+                self.wayland.get_display().get_registry_no_create().unwrap().bind(compositor_id, wl_registry_object);
+                if let Some(WaylandObject::WaylandCompositor(compositor)) = self.wayland.get_child(compositor_id){
+                    compositor.create_surface(self.id_counter.get_new_id());
+                }
+                //self.wayland.get_display().sync(self.id_counter.get_new_id());
             }, "xdg_wm_base" =>{
-                let id = self.wayland.get_new_id();
-                self.wayland.get_display().get_registry_no_create().unwrap().bind(id, wl_registry_object);
+                //println!("Creating WaylandXDGWMBase.");
+                self.wayland.get_display().get_registry_no_create().unwrap().bind(self.id_counter.get_new_id(), wl_registry_object);
+                //self.wayland.get_display().sync(self.id_counter.get_new_id());
             }, _ =>{}
         }
     }
@@ -52,10 +52,8 @@ impl DisplayCallbackHandle for Client{
 impl Client{
     pub fn start(&mut self){
         self.wayland.get_display().add_event_handler(self.events.get_callback_ref());
-        let mut new_id = self.wayland.get_new_id();
-        self.wayland.get_display().get_registry(new_id).add_event_handler(self.events.get_callback_ref());
-        new_id = self.wayland.get_new_id();
-        self.wayland.get_display().sync(new_id).add_event_handler(self.events.get_callback_ref());
+        self.wayland.get_display().get_registry(self.id_counter.get_new_id()).add_event_handler(self.events.get_callback_ref());
+        self.wayland.get_display().sync(self.id_counter.get_new_id()).add_event_handler(self.events.get_callback_ref());
 
         //let mut loop_count: u32 = 0;
         loop{
@@ -70,15 +68,20 @@ impl Client{
 
     fn poll(&mut self){
         self.wayland.poll();
-        self.events.borrow_internal().borrow_mut().dispatch_registry_callback(self);
-        self.events.borrow_internal().borrow_mut().dispatch_callback_handle(self);
-        self.events.borrow_internal().borrow_mut().dispatch_display_callback(self);
+        let internal_borrow = self.events.borrow_internal();
+        let mut events_borrow = internal_borrow.borrow_mut();
+        events_borrow.dispatch_registry_callback(self);
+        events_borrow.dispatch_callback_handle(self);
+        events_borrow.dispatch_display_callback(self);
     }
 
     pub fn new() -> Client{
+        let wl = Wayland::new();
+        let counter = wl.get_id_counter();
         Client{
-            wayland: Wayland::new(),
-            events: WaylandEventBuffer::new()
+            wayland: wl,
+            events: WaylandEventBuffer::new(),
+            id_counter: counter
         }
     }
 }

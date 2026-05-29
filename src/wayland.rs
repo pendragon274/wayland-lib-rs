@@ -4,14 +4,14 @@ pub mod wayland_sock;
 pub mod wayland_event_buf;
 
 use crate::{
-    wayland_sock::{
-        WaylandSock,
-        WaylandSockMsg},
-    wayland_object::{
-        WaylandObject,
-        WaylandObjectImpl,
-        wayland_display::WaylandDisplay},
-    util::WaylandIDCounter};
+        wayland_sock::{
+            WaylandSock,
+            WaylandSockMsg},
+        wayland_object::{
+            WaylandObject,
+            WaylandObjectImpl,
+            wayland_display::WaylandDisplay},
+        util::WaylandIDCounter};
 
 pub struct Wayland{
     wl_socket: WaylandSock,
@@ -19,6 +19,7 @@ pub struct Wayland{
     id_counter: WaylandIDCounter
 }
 
+#[allow(deprecated)]
 impl Wayland{
     // ***** Public Functions *****
     pub fn get_display(&mut self) -> &mut WaylandDisplay{
@@ -67,8 +68,12 @@ impl Wayland{
         self.collect_upstream_send();
     }
 
-    pub fn get_new_id(&mut self) -> u32{
+    pub fn get_new_id(&self) -> u32{
         self.id_counter.get_new_id()
+    }
+
+    pub fn get_id_counter(&self) -> WaylandIDCounter{
+        self.id_counter.clone()
     }
 
     pub fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject>{

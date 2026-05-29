@@ -27,12 +27,17 @@ pub enum WaylandObject{
 
 pub trait WaylandObjectImpl{
     fn get_id(&self) -> u32;
+
+    #[deprecated]
     fn is_upstream_flagged(&self) -> bool;
     fn get_child(&mut self, child_id: u32) -> Option<&mut WaylandObject>;
     fn msg_downstream(&mut self, msg: WaylandSockMsg);
+
+    #[deprecated]
     fn rcv_upstream_msg(&mut self) -> Vec<WaylandSockMsg>;
 }
 
+#[allow(deprecated)]
 impl WaylandObjectImpl for WaylandObject{
     fn get_id(&self) -> u32 {
         match self {

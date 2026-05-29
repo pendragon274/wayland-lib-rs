@@ -14,6 +14,7 @@ pub mod prelude{
 
 pub mod events_prelude{
     pub use crate::{
+        util::WaylandIDCounter,
         wayland_event_buf::WaylandEventBuffer,
         wayland_object::{
             wayland_callback::{

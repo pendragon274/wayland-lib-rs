@@ -32,6 +32,7 @@ impl WaylandCallback {
 
     // ***** Init Struct *****
     pub fn new(new_id: u32) -> WaylandCallback {
+        println!("Creating WaylandCallback object with id: {}", new_id);
         WaylandCallback{
             id: new_id,
             callbacks: Vec::new()

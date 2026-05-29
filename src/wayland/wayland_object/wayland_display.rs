@@ -29,6 +29,7 @@ pub struct WaylandDisplay{
     display_callbacks: Vec<Rc<RefCell<dyn DisplayCallbackHandle>>>
 }
 
+#[allow(deprecated)]
 impl WaylandObjectImpl for WaylandDisplay{
     fn get_id(&self) -> u32 {
         self.id
@@ -88,10 +89,10 @@ impl WaylandDisplay{
                     _ => panic!("WaylandDisplay::get_registry unwrapped an index of its child expecting a WaylandRegistry but found something else.")
                 }
             }, None =>{
-                let child = WaylandObject::WaylandRegistry(WaylandRegistry::new(new_id));
+                let child = WaylandObject::WaylandRegistry(WaylandRegistry::new(new_id, self.sock.clone()));
                 self.children.push(child);
                 let msg = WaylandSockMsg::new(self.get_id(), 1, new_id.to_ne_bytes().to_vec());
-                self.sock.write_all_msgs(vec![msg]);
+                self.sock.write_msg(msg);
                 let len = self.children.len() - 1;
                 match &mut self.children[len]{
                     WaylandObject::WaylandRegistry(reg) => reg,
@@ -113,7 +114,7 @@ impl WaylandDisplay{
     }
 
     pub fn sync(&mut self, callback_id: u32) -> &mut WaylandCallback{
-        self.sock.write_all_msgs(vec![WaylandSockMsg::new(self.get_id(), 0, callback_id.to_ne_bytes().to_vec())]);
+        self.sock.write_msg(WaylandSockMsg::new(self.get_id(), 0, callback_id.to_ne_bytes().to_vec()));
 
         let WaylandObject::WaylandCallback(callback) = self.children.push_mut(WaylandObject::WaylandCallback(WaylandCallback::new(callback_id))) else{
             panic!("WaylandDisplay::sync expects an item it just pushed to its children to be the same type it just pushed.");
